@@ -1,15 +1,150 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet">
     <title>Upload PDF</title>
+    <style>
+        *{
+            font-family: "Roboto", sans-serif;
+        }
+        body {
+            background-color: #eef2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+        }
+
+        input[type="submit"],
+        button {
+            padding: 10px 20px;
+            background-color: #2E6FA7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #193e5f;
+        }
+
+        textarea {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            font-size: 14px;
+            background: #f9f9f9;
+        }
+
+        button {
+            margin-top: 10px;
+            width: auto;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Upar arquivo</h1>
-    <form action="/" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
+    <h1>Upload e Concatenar Domínios</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file" id="file">
         <input type="submit" value="Upload PDF">
     </form>
+
+    <textarea id="sitesInput" rows="10" cols="50"
+        placeholder="Faça upload do arquivo para extrair os dominios aqui"></textarea><br>
+
+    <button onclick="concatenarSites()">CONCATENAR</button>
+    <br><br>
+
+    <textarea id="resultado" rows="10" cols="50" placeholder="Resultado concatenado"></textarea>
+
+    <button onclick="copyToClipboard()">COPIAR RESULTADO</button>
+
+    <script>
+        document.getElementById('uploadForm').onsubmit = async function (event) {
+            event.preventDefault();
+            var formData = new FormData();
+            formData.append("file", document.getElementById('file').files[0]);
+
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+                alert(result.error);
+            } else {
+                document.getElementById("sitesInput").value = result.extracted_text;
+            }
+        };
+
+        function concatenarSites() {
+            var sitesInput = document.getElementById("sitesInput").value;
+            var sitesArray = sitesInput.split('\n');
+            var resultado = "";
+
+            sitesArray.forEach(function (site) {
+                site = site.trim();
+                if (site) {
+                    resultado += `local-zone:"${site}" redirect\n`;
+                    resultado += `local-data:"${site}. A 186.224.17.49"\n`;
+                }
+            });
+
+            document.getElementById("resultado").value = resultado;
+        }
+
+        function copyToClipboard() {
+            var resultadoTextarea = document.getElementById("resultado");
+            resultadoTextarea.select();
+            document.execCommand("copy");
+            alert("Copiado para área de transferência");
+        }
+    </script>
 </body>
+
 </html>
