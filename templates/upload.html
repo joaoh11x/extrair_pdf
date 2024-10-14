@@ -11,9 +11,10 @@
         rel="stylesheet">
     <title>Upload PDF</title>
     <style>
-        *{
+        * {
             font-family: "Roboto", sans-serif;
         }
+
         body {
             background-color: #eef2f5;
             margin: 0;
@@ -81,6 +82,17 @@
             margin-left: auto;
             margin-right: auto;
         }
+
+        #loading {
+            display: none; 
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            font-size: 20px;
+            color: #333;
+        }
     </style>
 </head>
 
@@ -88,9 +100,11 @@
     <h1>Bloqueio de Domínios</h1>
 
     <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="file" id="file">
+        <input type="file" name="file" id="file" required>
         <input type="submit" value="Upload PDF">
     </form>
+
+    <div id="loading">Carregando...</div>
 
     <textarea id="sitesInput" rows="10" cols="50"
         placeholder="Faça upload do arquivo para extrair os dominios aqui"></textarea><br>
@@ -108,17 +122,25 @@
             var formData = new FormData();
             formData.append("file", document.getElementById('file').files[0]);
 
-            const response = await fetch('/', {
-                method: 'POST',
-                body: formData
-            });
+            document.getElementById('loading').style.display = 'block';
 
-            const result = await response.json();
+            try {
+                const response = await fetch('/', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            if (result.error) {
-                alert(result.error);
-            } else {
-                document.getElementById("sitesInput").value = result.extracted_text;
+                const result = await response.json();
+                document.getElementById('loading').style.display = 'none'; 
+
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    document.getElementById("sitesInput").value = result.extracted_text;
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                alert("Erro ao processar o arquivo.");
             }
         };
 
